@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.remering.scratch.springboot.mapper.QuestionMapper">
+
+    <resultMap id="QuestionEntityResultMap" type="com.github.remering.scratch.springboot.entity.QuestionEntity">
+        <id property="uuid" column="uuid" javaType="java.util.UUID" jdbcType="BINARY"/>
+        <result property="issueAt" column="issue_at" javaType="java.time.Instant" jdbcType="TIMESTAMP"/>
+        <result property="text" column="text" javaType="string" jdbcType="VARCHAR"/>
+        <result property="answer" column="answer" javaType="string" jdbcType="VARCHAR"/>
+        <result property="answerAt" column="answer_at" javaType="java.time.Instant" jdbcType="TIMESTAMP"/>
+        <association
+                property="course"
+                javaType="com.github.remering.scratch.springboot.entity.CourseEntity"
+                select="com.github.remering.scratch.springboot.mapper.CourseMapper.getByUUID"
+                column="course"
+        />
+        <association
+                property="issuer"
+                javaType="com.github.remering.scratch.springboot.entity.AccountEntity"
+                select="com.github.remering.scratch.springboot.mapper.AccountMapper.getByUUID"
+                column="issuer"
+        />
+    </resultMap>
+    <insert id="add" parameterType="com.github.remering.scratch.springboot.entity.QuestionEntity">
+        insert into question (
+            uuid,
+            course,
+            issuer,
+            issue_at,
+            text
+        ) values (
+            #{entity.uuid},
+            #{courseUUID},
+            #{entity.issuer.uuid},
+            #{entity.issueAt},
+            #{entity.text}
+        )
+    </insert>
+
+    <select id="getByUUID" resultType="com.github.remering.scratch.springboot.entity.QuestionEntity" resultMap="QuestionEntityResultMap">
+        select * from question where uuid = #{uuid}
+    </select>
+
+    <select id="getAllByCourseUUID" resultType="com.github.remering.scratch.springboot.entity.QuestionEntity" resultMap="QuestionEntityResultMap">
+        select * from question where course = #{courseUUID}
+    </select>
+
+    <update id="updateByUUID">
+        update question
+        <trim prefix="set" suffixOverrides=",">
+
+            <if test="answer != null">
+                answer = #{answer},
+                answer_at = ifnull(#{answerAt}, current_timestamp()),
+            </if>
+
+            <if test="text != null">
+                `text` = #{text},
+                issue_at = ifnull(#{issueAt}, current_timestamp()),
+            </if>
+
+        </trim>
+        where uuid = #{uuid}
+    </update>
+
+    <delete id="deleteByUUID">
+        delete from question
+        where uuid = #{uuid}
+    </delete>
+
+</mapper>

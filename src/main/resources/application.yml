@@ -1,0 +1,49 @@
+
+spring:
+
+  application:
+    name: springboot-scratch
+
+  jackson:
+    deserialization:
+
+      read-date-timestamps-as-nanoseconds: false
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  profiles:
+    active:
+      - default
+      - private
+
+  servlet:
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 1GB
+
+server:
+  port: 8888
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-handlers-package: com.github.remering.scratch.springboot.util.converter
+  configuration:
+    map-underscore-to-camel-case: true
+    lazy-loading-enabled: true
+
+
+verification-code:
+  min-send-interval: 60s
+  expire-time: 30m
+
+jwt:
+  expire-time: 7d
+
+user-upload:
+  baseDir: user-upload
+  host: http://localhost:8888
+  baseURL: user-upload
+  max-age: 7d
+
+#debug: true

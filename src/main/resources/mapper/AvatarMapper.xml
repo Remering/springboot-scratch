@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.remering.scratch.springboot.mapper.AvatarMapper">
+
+    <resultMap id="AvatarEntityResultMap" type="com.github.remering.scratch.springboot.entity.AvatarEntity">
+        <id column="id" property="id" javaType="int" jdbcType="INTEGER"/>
+        <association
+                property="account"
+                column="account_uuid"
+                javaType="com.github.remering.scratch.springboot.entity.AccountEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.AccountMapper.getByUUID"
+        />
+        <association
+                property="userUpload"
+                column="sha256"
+                javaType="com.github.remering.scratch.springboot.entity.UserUploadEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.UserUploadMapper.getBySha256"
+        />
+    </resultMap>
+
+    <select id="getByID" resultType="com.github.remering.scratch.springboot.entity.AvatarEntity" resultMap="AvatarEntityResultMap">
+        select * from avatar where id = #{id}
+    </select>
+
+    <select id="getByAccountUUID" resultType="com.github.remering.scratch.springboot.entity.AvatarEntity" resultMap="AvatarEntityResultMap">
+        select * from avatar where account_uuid = #{uuid}
+    </select>
+
+    <insert id="add" parameterType="com.github.remering.scratch.springboot.entity.AvatarEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into avatar(account_uuid, sha256) values (#{account.uuid}, #{userUpload.sha256})
+    </insert>
+
+    <update id="updateSha256ByID" parameterType="com.github.remering.scratch.springboot.entity.AvatarEntity">
+        replace into avatar
+        set id = #{id},
+            account_uuid = #{accountUUID},
+            sha256 = #{sha256}
+    </update>
+</mapper>

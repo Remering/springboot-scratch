@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.remering.scratch.springboot.mapper.CourseMapper">
+
+    <resultMap id="CourseEntityResultMap" type="com.github.remering.scratch.springboot.entity.CourseEntity">
+        <id property="uuid" column="uuid" javaType="java.util.UUID" jdbcType="BINARY"/>
+        <result property="name" column="name" javaType="string" jdbcType="VARCHAR"/>
+        <result property="introduction" column="introduction" javaType="string" jdbcType="VARCHAR"/>
+        <association
+                property="teacher"
+                column="teacher"
+                javaType="com.github.remering.scratch.springboot.entity.AccountEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.AccountMapper.getByUUID"
+        />
+        <association
+                property="file"
+                column="file"
+                javaType="com.github.remering.scratch.springboot.entity.UserUploadEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.UserUploadMapper.getBySha256"
+        />
+        <association
+                property="picture"
+                column="picture"
+                javaType="com.github.remering.scratch.springboot.entity.UserUploadEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.UserUploadMapper.getBySha256"
+        />
+        <association
+                property="video"
+                column="video"
+                javaType="com.github.remering.scratch.springboot.entity.UserUploadEntity"
+                jdbcType="BINARY"
+                select="com.github.remering.scratch.springboot.mapper.UserUploadMapper.getBySha256"
+        />
+
+    </resultMap>
+
+    <insert id="add">
+        insert into course(
+            uuid,
+            name,
+            teacher,
+            introduction,
+            picture,
+            file,
+            video
+        )
+        values (
+            #{uuid},
+            #{name},
+            #{teacher.uuid},
+            #{introduction},
+            #{picture.sha256},
+            #{file.sha256},
+            #{video.sha256}
+        )
+    </insert>
+
+    <select id="getByUUID" resultType="com.github.remering.scratch.springboot.entity.CourseEntity" resultMap="CourseEntityResultMap">
+        select * from course where uuid = #{uuid}
+    </select>
+
+    <select id="getAll" resultType="com.github.remering.scratch.springboot.entity.CourseEntity" resultMap="CourseEntityResultMap">
+        select * from course
+    </select>
+
+    <update id="updateByUUID" parameterType="com.github.remering.scratch.springboot.entity.CourseEntity">
+        update course
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="picture != null">picture = #{picture.sha256},</if>
+            <if test="file != null">file = #{file.sha256},</if>
+            <if test="video != null">video = #{video.sha256},</if>
+        </trim>
+        where uuid = #{uuid}
+    </update>
+</mapper>

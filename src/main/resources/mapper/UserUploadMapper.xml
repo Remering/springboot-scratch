@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.remering.scratch.springboot.mapper.UserUploadMapper">
+
+    <select id="getBySha256" resultType="com.github.remering.scratch.springboot.entity.UserUploadEntity">
+        select * from user_upload where sha256 = #{sha256}
+    </select>
+
+
+    <select id="getByUUID" resultType="com.github.remering.scratch.springboot.entity.UserUploadEntity">
+        select * from user_upload where uuid = #{uuid}
+    </select>
+
+    <insert id="add" parameterType="com.github.remering.scratch.springboot.entity.UserUploadEntity">
+        insert into user_upload(sha256, filename, uuid, type)
+        values (#{sha256}, #{filename}, #{uuid}, #{type});
+    </insert>
+
+    <delete id="deleteBySha256">
+        delete from user_upload where sha256 = #{sha256}
+    </delete>
+
+</mapper>
