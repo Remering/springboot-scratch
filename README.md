@@ -1,6 +1,3 @@
-# 工程简介
+## springboot-scratch
 
-
-
-# 延伸阅读
-
+A spring boot implementation of scratch teaching server 
