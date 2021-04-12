@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriBuilder;
@@ -59,7 +60,7 @@ public class UserUploadService {
     @Transactional
     public UserUploadEntity save(MultipartFile userUploadFile, byte[] sha256) {
 
-        // copy from multipart file to local filesystem file
+        // copy from multipart file to local file system
         val uuid = UUID.randomUUID();
         val path = getUserUploadPath(uuid);
         Assert.state(!Files.exists(path), "File " + path.toAbsolutePath().toString() + "already exists!");
@@ -67,11 +68,11 @@ public class UserUploadService {
         @Cleanup val fileChannel = Files.newByteChannel(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         val sha256Calculated = calculateSha256AndWrite(userUploadChannel, fileChannel);
         if (!Arrays.equals(sha256, sha256Calculated)) {
+            Files.delete(path);
             return null;
         }
 
-        // add entity in database
-
+        // add entity to database
         val entity = UserUploadEntity.builder()
                 .uuid(uuid)
                 .sha256(sha256)
@@ -80,22 +81,33 @@ public class UserUploadService {
                 .build();
 
         val result = userUploadMapper.add(entity);
+        if (result == 1) {
+            return entity;
+        }
 
-        return entity;
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        Files.delete(path);
+        return null;
     }
 
     @SneakyThrows
     @Transactional
-    public void delete(UserUploadEntity entity) {
+    public void delete(UserUploadEntity entity, boolean checkExist) {
 
         // delete entity in database
         userUploadMapper.deleteBySha256(entity.getSha256());
 
-        // delete file in local filesystem
+        // delete file in local file system
         val fileResource = baseDir.createRelative(entity.getUuid().toString());
-        Assert.state(fileResource.exists(), "Try to delete a non existing file " + fileResource.getFilename());
+        if (checkExist) {
+            Assert.state(fileResource.exists(), "Try to delete a non-existing file " + fileResource.getFilename());
+        }
         val path = Paths.get(fileResource.getURI());
         Files.delete(path);
+    }
+
+    public void delete(UserUploadEntity entity) {
+        delete(entity, true);
     }
 
 }

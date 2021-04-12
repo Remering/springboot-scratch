@@ -40,7 +40,10 @@ public class UserUploadController {
         val userUploadEntity = userUploadService.getBySha256(Codec.hexStr2Bytes(hash));
         if (userUploadEntity == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         val fileResource = new FileSystemResource(userUploadService.getUserUploadPath(userUploadEntity.getUuid()));
-        if (!fileResource.exists()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (!fileResource.exists()) {
+            userUploadService.delete(userUploadEntity);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         return ResponseEntity.status(HttpStatus.OK)
 
                 .contentType(userUploadEntity.getType())
@@ -48,9 +51,9 @@ public class UserUploadController {
                 .cacheControl(CacheControl.maxAge(maxAge).cachePublic())
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         String.format(
-                                "inline;filename:\"%s\";filename*:UTF-8''\"%s\"",
+                                "inline;filename:\"%s\";filename*:utf-8\"%s\"",
                                 URLEncoder.encode(userUploadEntity.getFilename()),
-                                userUploadEntity.getFilename()
+                                URLEncoder.encode(userUploadEntity.getFilename())
                         )
                 )
 
